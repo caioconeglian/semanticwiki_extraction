@@ -2,6 +2,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 
 def findEntity(query):
     """find the entity of wikidata with query"""
+    query = query.replace('_',' ')
     sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
     querysparql="""
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -22,6 +23,56 @@ def findEntity(query):
             wikidata = result["entity"]["value"]        
 
     return wikidata
+
+
+def findEntityDbpedia(query):
+    """find the entity of wikidata with query"""
+    sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+    querysparql="""
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        SELECT ?entity 
+        WHERE { ?entity rdfs:label \""""+query+"""\"@en.
+               
+        }LIMIT 1"""
+    print(querysparql)
+    sparql.setQuery(querysparql)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+
+    dbpedia = "Not found"
+
+    count = 0
+    for result in results["results"]["bindings"]:
+        if(count==0):
+            dbpedia = result["entity"]["value"]        
+
+    return dbpedia
+
+
+def findLabel(uri):
+    """find the label with uri"""
+    sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+    querysparql="""
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        SELECT ?name 
+        WHERE { <"""+uri+"""> rdfs:label ?name
+
+        FILTER (lang(?name) = 'en')
+               
+        }LIMIT 1"""
+    print(querysparql)
+    sparql.setQuery(querysparql)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+
+    dbpedia = "Not found"
+
+    count = 0
+    for result in results["results"]["bindings"]:
+        if(count==0):
+            dbpedia = result["name"]["value"]        
+
+    return dbpedia
 
 
 def findEntityWikidataWithDbpedia(entity_dbpedia):
@@ -116,6 +167,46 @@ def findTriplesEntity(entity, option):
 
     return triples
 
+
+def findPropertiesRelated(entity, option, entity_first):
+    """ option 1 --> Dbpedia 
+        option 2 --> Wikidata"""
+    url_dataset = ''
+    if option ==1:
+        url_dataset = 'http://dbpedia.org/sparql'
+    elif option ==2:
+        url_dataset = 'https://query.wikidata.org/sparql'
+    else:
+        return []
+
+    sparql = SPARQLWrapper(url_dataset)
+    querysparql="""
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        SELECT DISTINCT ?p ?p2
+        WHERE { 
+        OPTIONAL{
+        <"""+entity+"""> ?p <"""+entity_first+""">.
+            <"""+entity_first+"""> ?p2 <"""+entity+""">.
+        }
+            
+        }"""
+    print(querysparql)
+    sparql.setQuery(querysparql)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+
+    triples = []
+    for result in results["results"]["bindings"]:
+        triple = {}
+        try:
+            triple['property1'] = result["p"]["value"]
+            triple['property2'] = result["p2"]["value"]
+            triples.append(triple)
+        except:
+            print('erro')      
+
+    return triples
+
  
 def findAllTriplesRelated(list_counter, dbpedia_boolean, wikidata_boolean):
     """
@@ -135,3 +226,11 @@ def findAllTriplesRelated(list_counter, dbpedia_boolean, wikidata_boolean):
     results = {'triples_dbpedia':triples_dbpedia, 'triples_wikidata': triples_wikidata}
 
     return results
+
+
+def findTest(list_counter, entidade):
+    triples_dbpedia = []
+    for subject in list_counter:
+        triples_dbpedia.append(findPropertiesRelated(subject[0], 1, entidade))
+
+    return triples_dbpedia
