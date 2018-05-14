@@ -20,6 +20,7 @@ def testDbpediaSpot(uri, query, dbpedia_boolean, wikidata_boolean):
     """esse método irá extrair dá pagina wiki os 20 conceitos mais comuns e obter as propriedades delas"""
     #exemplo script_wiki.testDbpediaSpot('https://en.wikipedia.org/w', 'Dilma_Rousseff', True, True)
     extraction = Extraction (uri, query)
+    
     list_resource = extraction.find_concepts_spot()
     list_20 = Counter(list_resource).most_common(20)
    
