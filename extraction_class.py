@@ -1,6 +1,7 @@
 import urllib3
 import requests
 import xml.etree.ElementTree as ET
+from collections import Counter
 
 class ExtractionFromWiki:
 
@@ -60,6 +61,32 @@ class ExtractionFromWiki:
         return list_resource
 
 
+    def __count_concepts_more_presented(self, list_resource, limit):
+        """
+        limit --> the limit of values, 0 apresented all
+        """
+        if limit == 0:
+            return Counter(list_resource)
+        else:
+            return Counter(list_resource).most_common(limit)
+
+
+    def __find_concepts_spot(self):
+        """
+        return --> a list with URI of the concepts
+        """
+
+        text = self.textwiki
+        lenwiki = int(len(text)/4000)
+        query_spot = SpotlightQuery(0.8, 20)
+        list_resource = []
+        for i in range(lenwiki+1):
+            list_resource = query_spot.find_resources_spot(text[i*4000:(i+1)*4000],list_resource)
+        list_resource = self.__remove_stop_words(list_resource)
+        return list_resource
+
+
+
     def find_categories(self):
         """
         return --> a list with all categories of the page
@@ -81,19 +108,16 @@ class ExtractionFromWiki:
         return listterms
 
 
-    def find_concepts_spot(self):
+    def find_all_concepts_spot(self):
         """
-        return --> a list with URI of the concepts
+        return all concepts of spotlight
         """
+        return self.__find_concepts_spot()
 
-        text = self.textwiki
-        lenwiki = int(len(text)/4000)
-        query_spot = SpotlightQuery(0.8, 20)
-        list_resource = []
-        for i in range(lenwiki+1):
-            list_resource = query_spot.find_resources_spot(text[i*4000:(i+1)*4000],list_resource)
-        list_resource = self.__remove_stop_words(list_resource)
-        return list_resource
+
+    def find_most_commons_conpects_spot(self, limit):
+        resources = self.__find_concepts_spot()
+        return self.__count_concepts_more_presented(resources, limit)
 
 
 
@@ -105,7 +129,6 @@ class SpotlightQuery:
         
 
     def find_resources_spot(self, texttoprocess, list_resource):
-        print("http://model.dbpedia-spotlight.org/en/annotate?text="+texttoprocess+"&confidence="+str(self.confidence)+"&support="+str(self.support))
         req = requests.get("http://model.dbpedia-spotlight.org/en/annotate?text="+texttoprocess+"&confidence="+str(self.confidence)+"&support="+str(self.support))
 
         text_full = ET.fromstring(req.text)

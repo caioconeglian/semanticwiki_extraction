@@ -1,32 +1,7 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 
-def findEntity(query):
-    """find the entity of wikidata with query"""
-    query = query.replace('_',' ')
-    sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
-    querysparql="""
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        SELECT ?entity 
-        WHERE { ?entity rdfs:label \""""+query+"""\"@en.
-               
-        }"""
-    print(querysparql)
-    sparql.setQuery(querysparql)
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-
-    wikidata = "Not found"
-
-    count = 0
-    for result in results["results"]["bindings"]:
-        if(count==0):
-            wikidata = result["entity"]["value"]        
-
-    return wikidata
-
-
 def findEntityDbpedia(query):
-    """find the entity of wikidata with query"""
+    """find the entity of dbpedia with query"""
     sparql = SPARQLWrapper("http://dbpedia.org/sparql")
     querysparql="""
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -49,7 +24,7 @@ def findEntityDbpedia(query):
     return dbpedia
 
 
-def findLabel(uri):
+def findLabelDbepdia(uri):
     """find the label with uri"""
     sparql = SPARQLWrapper("http://dbpedia.org/sparql")
     querysparql="""

@@ -2,6 +2,7 @@ import sparql_methods
 from collections import Counter
 from extraction_class import ExtractionFromWiki as Extraction
 from extraction_class import SpotlightQuery
+import discovery_ontology
 
 
 def testCategories(uri, query):
@@ -21,9 +22,8 @@ def testDbpediaSpot(uri, query, dbpedia_boolean, wikidata_boolean):
     """esse método irá extrair dá pagina wiki os 20 conceitos mais comuns e obter as propriedades delas"""
     #exemplo script_wiki.testDbpediaSpot('https://en.wikipedia.org/w', 'Dilma_Rousseff', True, True)
     extraction = Extraction (uri, query)
-    list_resource = extraction.find_concepts_spot()
 
-    list_20 = Counter(list_resource).most_common(20)
+    list_20 = extraction.find_most_commons_conpects_spot(20)
    
     """está ok, só tirei para fazer outros testes"""
     triples_dbpedia_wikidata = sparql_methods.findAllTriplesRelated(list_20, dbpedia_boolean, wikidata_boolean)
@@ -58,6 +58,8 @@ def testOneTerm(term):
     query_spot = SpotlightQuery(0.2, 20)
     list_resource = []
     list_resource = query_spot.find_resources_spot(term, list_resource)
+    uri_resource = list_resource[0]
+    name_term = sparql_methods.findLabelDbepdia(uri_resource)
     return list_resource
 
 
