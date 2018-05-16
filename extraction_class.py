@@ -31,18 +31,7 @@ class ExtractionFromWiki:
             self.textwiki = el1.text
     
 
-    def __find_resources_spot(self, texttoprocess, list_resource):
-        req = requests.get("http://model.dbpedia-spotlight.org/en/annotate?text="+texttoprocess+"&confidence=0.8&support=20")
-        text_full = ET.fromstring(req.text)
-        try:
-            resources_xml = text_full.find('Resources').findall('Resource')
-            #list_resource = []
-            for resource_xml in resources_xml:
-                list_resource.append(resource_xml.get('URI'))
-        except:
-            print('no resource')
-        return list_resource
-
+    
 
     def __remove_stop_words(self, list_resource):
         while 'http://dbpedia.org/resource/Hypertext_Transfer_Protocol' in list_resource: list_resource.remove('http://dbpedia.org/resource/Hypertext_Transfer_Protocol')
@@ -96,11 +85,36 @@ class ExtractionFromWiki:
         """
         return --> a list with URI of the concepts
         """
+
         text = self.textwiki
         lenwiki = int(len(text)/4000)
+        query_spot = SpotlightQuery(0.8, 20)
         list_resource = []
         for i in range(lenwiki+1):
-            list_resource = self.__find_resources_spot(text[i*4000:(i+1)*4000],list_resource)
+            list_resource = query_spot.find_resources_spot(text[i*4000:(i+1)*4000],list_resource)
         list_resource = self.__remove_stop_words(list_resource)
+        return list_resource
+
+
+
+class SpotlightQuery:
+
+    def __init__(self, confidence, support):
+        self.confidence = confidence
+        self.support = support
+        
+
+    def find_resources_spot(self, texttoprocess, list_resource):
+        print("http://model.dbpedia-spotlight.org/en/annotate?text="+texttoprocess+"&confidence="+str(self.confidence)+"&support="+str(self.support))
+        req = requests.get("http://model.dbpedia-spotlight.org/en/annotate?text="+texttoprocess+"&confidence="+str(self.confidence)+"&support="+str(self.support))
+
+        text_full = ET.fromstring(req.text)
+        try:
+            resources_xml = text_full.find('Resources').findall('Resource')
+            #list_resource = []
+            for resource_xml in resources_xml:
+                list_resource.append(resource_xml.get('URI'))
+        except:
+            print('no resource')
         return list_resource
 

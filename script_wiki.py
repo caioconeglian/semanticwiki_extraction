@@ -1,6 +1,7 @@
 import sparql_methods
 from collections import Counter
 from extraction_class import ExtractionFromWiki as Extraction
+from extraction_class import SpotlightQuery
 
 
 def testCategories(uri, query):
@@ -52,6 +53,12 @@ def testOntologies(uri, query):
 
     return list_label
 
+
+def testOneTerm(term):
+    query_spot = SpotlightQuery(0.2, 20)
+    list_resource = []
+    list_resource = query_spot.find_resources_spot(term, list_resource)
+    return list_resource
 
 
 if __name__ == "__main__":
