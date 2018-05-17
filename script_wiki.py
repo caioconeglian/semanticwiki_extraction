@@ -59,8 +59,11 @@ def testOneTerm(term):
     list_resource = []
     list_resource = query_spot.find_resources_spot(term, list_resource)
     uri_resource = list_resource[0]
-    name_term = sparql_methods.findLabelDbepdia(uri_resource)
-    return list_resource
+    name_term = sparql_methods.findLabelDbepdia(uri_resource).lower()
+    entity = discovery_ontology.findEntityOntologySparql(name_term,'http://202.45.139.84:10035/catalogs/fao/repositories/agrovoc')
+    list_resources = discovery_ontology.findTermsSynonymous(entity, 'http://202.45.139.84:10035/catalogs/fao/repositories/agrovoc')
+    outros_termos = discovery_ontology.findTermsRelated(entity, 'http://202.45.139.84:10035/catalogs/fao/repositories/agrovoc')
+    return outros_termos
 
 
 if __name__ == "__main__":
